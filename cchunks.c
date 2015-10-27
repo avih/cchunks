@@ -78,12 +78,13 @@ Ranges:\n\
   RANGE is in the form of [FROM]:[TO] (without spaces), where:\n\
     FROM is START or +SKIP\n\
     TO   is END   or +LENGTH\n\
-  START/END: offset at IN_FILE. If negative, then back from IN_FILE-size.\n\
+  IN_SIZE - the file size of IN_FILE.\n\
+  START/END: offset at IN_FILE. If negative, then relative to IN_SIZE.\n\
   SKIP: relative to previous range's TO, may be negative (e.g. '0:50 +-5:100').\n\
   LENGTH: relative to FROM, never negative.\n\
-  FROM and TO are cropped to [0 .. IN_FILE-size]\n\
-  If FROM is omitted, 0 is used. If TO is omitted, IN_FILE-size is used.\n\
-  If (TO - FROM) <= 0, the range is ignored (will not reverse data).\n\
+  FROM and TO are cropped to [0 .. IN_SIZE]\n\
+  If FROM is omitted, 0 is used. If TO is omitted, IN_SIZE is used.\n\
+  If FROM is not smaller than TO, the range is ignored (will not reverse data).\n\
   If the output ends up empty, an empty OUT_FILE will be created.\n\
 \n\
 Sample ranges:\n\
