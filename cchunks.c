@@ -41,6 +41,7 @@
     #define cc_fseek    fseeko
     #define cc_ftell    ftello
     #define cc_fopen    fopen
+    #define cc_fprintf  fprintf
 
     /**************************************************************************/
     // From: http://src.chromium.org/native_client/trunk/src/native_client/src/include/portability.h
@@ -72,7 +73,7 @@
 #endif
 
 
-#define CCVERSION "0.4"
+#define CCVERSION "0.4.1"
 #define RW_BUFFSIZE (512 * 1024)
 
 // -p prints percentage every PROGRESS_PER percent and '.' every PROGRESS_DOT
@@ -95,10 +96,10 @@ void help(void);  // full
 cc_off_t fsize(const char* fname);
 int get_range(cc_off_t in_size, cc_off_t prev_to, const char *str, range_t *out);
 
-#define VERBOSE(...)  { if (opt_verbose) fprintf(stderr, __VA_ARGS__); }
-#define ERR_EXIT(...) { fprintf(stderr, "Error: ");   \
-                        fprintf(stderr, __VA_ARGS__); \
-                        fprintf(stderr, "\n");        \
+#define VERBOSE(...)  { if (opt_verbose) cc_fprintf(stderr, __VA_ARGS__); }
+#define ERR_EXIT(...) { cc_fprintf(stderr, "Error: ");   \
+                        cc_fprintf(stderr, __VA_ARGS__); \
+                        cc_fprintf(stderr, "\n");        \
                         goto exit_L; }
 
 int main (int argc, char **argv)
@@ -298,17 +299,17 @@ int main (int argc, char **argv)
                 int prev_percent = (int)((double)(total_processed - got) / expected_output_size * 100);
 
                 if (percent / PROGRESS_PER != prev_percent / PROGRESS_PER)
-                    fprintf(stderr, " %d%% ", percent);
+                    cc_fprintf(stderr, " %d%% ", percent);
                 else if (percent / PROGRESS_DOT != prev_percent / PROGRESS_DOT)
-                    fprintf(stderr, ".");
+                    cc_fprintf(stderr, ".");
             }
         }
     }
 
     if (opt_progress) {
         if (!expected_output_size)
-            fprintf(stderr, " %d%% ", 100);
-        fprintf(stderr, "\n");
+            cc_fprintf(stderr, " %d%% ", 100);
+        cc_fprintf(stderr, "\n");
     }
 
     // success
@@ -322,7 +323,7 @@ exit_L:
         fclose(out_file);
 
     if (rv && needs_usage_on_err) {
-        fprintf(stderr, "\n");
+        cc_fprintf(stderr, "\n");
         usage();
     }
 
@@ -545,7 +546,7 @@ exit_L:
 
 void usage()
 {
-    fprintf(stderr, "\
+    cc_fprintf(stderr, "\
 Usage:   cchunks [-hfvpd] IN_FILE -o OUT_FILE RANGE [RANGE_2 [...]]\n\
 Example: Copy 2KiB from offset 5KiB: cchunks infile -o outfile 5K:+2K (or 5K:7K)\n\
 Help:    cchunks -h\n\

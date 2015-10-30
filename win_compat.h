@@ -20,7 +20,7 @@
 // Windows fugliness.
 // For unicode support (enabled by default): link with shell32.lib.
 //   E.g. with msvc add: shell32.lib, with gcc/tcc add: -lshell32
-// To disable unicode file names, add (msvc) /DCC_DISABLE_WIN_UTF8
+// To disable unicode file names, add (msvc) -DCC_DISABLE_WIN_UTF8
 
 // MSVC - suppress warnings which we don't need:
 // - fopen doesn't check for null values, we do.
@@ -79,14 +79,20 @@
 
 #ifdef CC_DISABLE_WIN_UTF8
   #define cc_fopen    fopen
+  #define cc_fprintf  fprintf
 
 #else
   #define CC_HAVE_WIN_UTF8
+  #define cc_fprintf  mp_fprintf
 
   #include <windows.h>
   #include <shellapi.h>
 
-// utf8 code from mpv: https://github.com/mpv-player/mpv/blob/master/osdep/io.c#L98
+// utf8 and win console code from mpv, modified to:
+// - Use malloc instead of talloc.
+// - Don't care about ansi escaping.
+// - https://github.com/mpv-player/mpv/blob/master/osdep/io.c#L98
+// - https://github.com/mpv-player/mpv/blob/master/osdep/terminal-win.c#L170
 
 /*
  * unicode/utf-8 I/O helpers and wrappers for Windows
@@ -128,7 +134,82 @@ char *mp_to_utf8(const wchar_t *s)
     WideCharToMultiByte(CP_UTF8, 0, s, -1, ret, count, NULL, NULL);
     return ret;
 }
+
+// own implementation of isatty
+static int mp_check_console(HANDLE wstream)
+{
+    if (wstream != INVALID_HANDLE_VALUE) {
+        unsigned int filetype = GetFileType(wstream);
+
+        if (!((filetype == FILE_TYPE_UNKNOWN) &&
+            (GetLastError() != ERROR_SUCCESS)))
+        {
+            filetype &= ~(FILE_TYPE_REMOTE);
+
+            if (filetype == FILE_TYPE_CHAR) {
+                DWORD ConsoleMode;
+                int ret = GetConsoleMode(wstream, &ConsoleMode);
+
+                if (!(!ret && (GetLastError() == ERROR_INVALID_HANDLE))) {
+                    // This seems to be a console
+                    return 1;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+static void write_console_text(HANDLE wstream, char *buf)
+{
+    wchar_t *out = mp_from_utf8(buf);
+    size_t out_len = wcslen(out);
+    WriteConsoleW(wstream, out, out_len, NULL, NULL);
+    free(out);
+}
+
+// if stream is a tty, prints wide chars, else utf8.
+// originally used mp_write_console_ansi which also translates ansi sequences,
+// but we don't need it so use plain write_console_text instead.
+static int mp_vfprintf(FILE *stream, const char *format, va_list args)
+{
+    int done = 0;
+
+    HANDLE wstream = INVALID_HANDLE_VALUE;
+
+    if (stream == stdout || stream == stderr) {
+        wstream = GetStdHandle(stream == stdout ?
+                               STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
+    }
+
+    if (mp_check_console(wstream)) {
+        size_t len = vsnprintf(NULL, 0, format, args) + 1;
+        char *buf = malloc(sizeof(char) * len);
+
+        if (buf) {
+            done = vsnprintf(buf, len, format, args);
+            write_console_text(wstream, buf);
+        }
+        free(buf);
+    } else {
+        done = vfprintf(stream, format, args);
+    }
+
+    return done;
+}
+
+int mp_fprintf(FILE *stream, const char *format, ...)
+{
+    int res;
+    va_list args;
+    va_start(args, format);
+    res = mp_vfprintf(stream, format, args);
+    va_end(args);
+    return res;
+}
 // ------------------- end of mpv code --------------------------------
+
 
 // on success, returns a utf8 argv and sets out_success to 1. On failure returns
 // the original argv. caller needs to free once done - using free_argvutf8
@@ -144,8 +225,7 @@ char **win_utf8_argv(int argc_validation, char **argv_orig, int *out_success)
     }
 
     char **argvu = malloc(sizeof(char*) * (nArgs + 1));
-    int i = 0;
-    for (; i < nArgs; i++) {
+    for (int i = 0; i < nArgs; i++) {
         argvu[i] = mp_to_utf8(szArglist[i]);
         if (!argvu[i])
             return argv_orig; // leaking the previous strings. we don't care.
