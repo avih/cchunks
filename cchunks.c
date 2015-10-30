@@ -271,7 +271,7 @@ int main (int argc, char **argv)
     cc_off_t total_processed = 0;
     prev_to = 0;
 
-    for (i = optind; i < argc; i++) {
+    for (i = optind; (i < argc) && expected_output_size; i++) {
         range_t range;
         if (!get_range(in_size, prev_to, argv[i], &range))
             ERR_EXIT("(Internal): range became invalid?! '%s'", argv[i]);
@@ -293,7 +293,7 @@ int main (int argc, char **argv)
             toread -= got;
             total_processed += got;
 
-            if (opt_progress && expected_output_size) {
+            if (opt_progress) {
                 int percent = (int)((double)total_processed / expected_output_size * 100);
                 int prev_percent = (int)((double)(total_processed - got) / expected_output_size * 100);
 
