@@ -61,7 +61,7 @@
     // so define it to use a correct getenv
     #ifndef getenv
         #define CC_REMOVE_GETENV
-        const char *fugly_getenv(const char* str) {
+        char *fugly_getenv(const char* str) {
             return getenv(str);
         }
         #define getenv fugly_getenv
