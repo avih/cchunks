@@ -293,7 +293,7 @@ int main (int argc, char **argv)
             toread -= got;
             total_processed += got;
 
-            if (opt_progress) {
+            if (opt_progress && expected_output_size) {
                 int percent = (int)((double)total_processed / expected_output_size * 100);
                 int prev_percent = (int)((double)(total_processed - got) / expected_output_size * 100);
 
@@ -305,11 +305,14 @@ int main (int argc, char **argv)
         }
     }
 
-    if (opt_progress)
+    if (opt_progress) {
+        if (!expected_output_size)
+            fprintf(stderr, " %d%% ", 100);
         fprintf(stderr, "\n");
-    VERBOSE("- Done.\n");
+    }
 
     // success
+    VERBOSE("- Done.\n");
     rv = 0;
 
 exit_L:
