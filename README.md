@@ -3,6 +3,7 @@ Copy chunks from an input file, with flexible ranges description
 
 Build:  `$CC cchunks.c`
 On Windows, link with `shell32.lib`, e.g. `cl cchunks.c shell32.lib`
+Windows binaries are available at the [Releases](https://github.com/avih/cchunks/releases/) page.
 
 Tested: `gcc` (win/osx/linux), `clang` (osx/linux), `cl` (MSVC), `tcc` (win - no unicode).
 
