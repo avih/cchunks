@@ -1,25 +1,25 @@
 # cchunks
 Copy chunks from an input file, with flexible ranges description
 
-Build:  `$CC cchunks.c gnu-getopt/getopt.c -o cchunks`.
+Build:  `$CC cchunks.c`
+On Windows, link with `shell32.lib`, e.g. `cl cchunks.c shell32.lib`
 
-Tested `$CC` as: `gcc` (win/osx/linux), `clang` (osx/linux), `tcc` (win), `cl` (MS compiler).
-
-A Windows pre-compiled (with tcc 0.25) binary is available at `/win32.bin`.
+Tested: `gcc` (win/osx/linux), `clang` (osx/linux), `cl` (MSVC), `tcc` (win - no unicode).
 
 ```
-Usage: cchunks [-hfvp] IN_FILE -o OUT_FILE RANGE [RANGE_2 [...]]
+Usage: cchunks [-hfvpd] IN_FILE -o OUT_FILE RANGE [RANGE_2 [...]]
 Copy chunks from an input file, with flexible ranges description.
-Version 0.3
+Version 0.4
 
-Example: Copy 200 bytes from offset 50: cchunks myfile -o outfile 50:+200
+Example: Copy 2KiB from offset 5KiB: cchunks infile -o outfile 5K:+2K (or 5K:7K)
 
 If OUT_FILE is '-' (without quotes), the output will go to stdout.
 Options:
+  -h   Display this help and exit.
   -f   Force overwrite OUT_FILE if exists.
   -v   Be verbose (to stderr).
   -p   Print progress (to stderr).
-  -h   Display this help and exit (also if no arguments).
+  -d   Dummy mode: validate and resolve inputs, then exit.
 
 Ranges:
   Ranges may overlap, but will NOT be combined. Ranges are independently copied.
@@ -31,10 +31,10 @@ Ranges:
   START/END: offset at IN_FILE. If negative, then relative to IN_SIZE.
   SKIP: relative to previous range's TO, may be negative (e.g. '0:50 +-5:100').
   LENGTH: relative to FROM, never negative.
-  FROM and TO are cropped to [0 .. IN_SIZE]
+  For convenience, values may use a unit k/m (1000 based) or K/M (1024 based).
+  Once resolved, FROM and TO are cropped to [0 .. IN_SIZE] on each RANGE.
   If FROM is omitted, 0 is used. If TO is omitted, IN_SIZE is used.
-  If FROM is not smaller than TO, the range is ignored (will not reverse data).
-  If the output ends up empty, an empty OUT_FILE will be created.
+  If (FROM >= TO), the range is ignored (will not reverse data).
 
 Sample ranges:
   (up to) 200 bytes from offset 50: '50:250' or '50:+200'
