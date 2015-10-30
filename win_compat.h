@@ -230,7 +230,8 @@ char **win_utf8_argv(int argc_validation, char **argv_orig, int *out_success)
     }
 
     char **argvu = malloc(sizeof(char*) * (nArgs + 1));
-    for (int i = 0; i < nArgs; i++) {
+    int i;
+    for (i = 0; i < nArgs; i++) {
         argvu[i] = mp_to_utf8(szArglist[i]);
         if (!argvu[i])
             return argv_orig; // leaking the previous strings. we don't care.
@@ -244,7 +245,8 @@ char **win_utf8_argv(int argc_validation, char **argv_orig, int *out_success)
 
 void free_argvutf8(int argc, char** argvu)
 {
-    for (int i = 0; i < argc; i++)
+    int i;
+    for (i = 0; i < argc; i++)
         free(argvu[i]);
     free(argvu);
 }
