@@ -86,7 +86,12 @@
   #define cc_fprintf  mp_fprintf
 
   #include <windows.h>
-  #include <shellapi.h>
+  #ifndef __TINYC__
+    #include <shellapi.h>
+  #else
+    // tcc 0.26 (latest) doesn't have shellapi.h, this is the prototype it needs
+    LPWSTR * __stdcall CommandLineToArgvW(LPCWSTR, int *);
+  #endif
 
 // utf8 and win console code from mpv, modified to:
 // - Use malloc instead of talloc.
