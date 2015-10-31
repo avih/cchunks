@@ -555,7 +555,7 @@ Help:    cchunks -h\n\
 
 void help()
 {
-    printf("\
+    cc_fprintf(stdout, "\
 Usage: cchunks [-hfvpd] IN_FILE -o OUT_FILE RANGE [RANGE_2 [...]]\n\
 Copy chunks from an input file, with flexible ranges description.\n\
 Version %s\n\
