@@ -83,7 +83,7 @@
 
 #else
   #define CC_HAVE_WIN_UTF8
-  #define cc_fprintf  mp_fprintf
+  #define cc_fprintf  cc_fprintf
 
   #include <windows.h>
   #ifndef __TINYC__
@@ -203,16 +203,6 @@ static int mp_vfprintf(FILE *stream, const char *format, va_list args)
 
     return done;
 }
-
-int mp_fprintf(FILE *stream, const char *format, ...)
-{
-    int res;
-    va_list args;
-    va_start(args, format);
-    res = mp_vfprintf(stream, format, args);
-    va_end(args);
-    return res;
-}
 // ------------------- end of mpv code --------------------------------
 
 
@@ -252,6 +242,22 @@ void free_argvutf8(int argc, char** argvu)
 }
 
 int g_win_utf8_enabled = 0;
+
+int cc_fprintf(FILE *stream, const char *format, ...)
+{
+    int res;
+    va_list args;
+    va_start(args, format);
+
+    if (g_win_utf8_enabled)
+        res = mp_vfprintf(stream, format, args);
+    else
+        res = vfprintf(stream, format, args);
+
+    va_end(args);
+    return res;
+}
+
 FILE *cc_fopen(const char *fname, const char *mode) {
     if (g_win_utf8_enabled) {
         wchar_t *wfname = mp_from_utf8(fname);

@@ -105,7 +105,7 @@ int get_range(cc_off_t in_size, cc_off_t prev_to, const char *str, range_t *out)
 int main (int argc, char **argv)
 {
 #ifdef CC_HAVE_WIN_UTF8
-    // Support unicode file names, but err/verbose printed as UTF8 (not good enough).
+    // UTF8 argv. g_win_utf8_enabled affects cc_fopen and cc_fprintf
     argv = win_utf8_argv(argc, argv, &g_win_utf8_enabled);
 #endif
 

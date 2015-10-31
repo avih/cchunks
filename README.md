@@ -7,7 +7,7 @@ On Windows, link with `shell32.lib`, e.g. `cl cchunks.c shell32.lib`
 
 Windows binaries are available at the [Releases](https://github.com/avih/cchunks/releases/) page.
 
-Tested: `gcc` (win/osx/linux), `clang` (osx/linux), `cl` (MSVC), `tcc` (win - no unicode).
+Tested: `gcc` (win/osx/linux), `clang` (osx/linux), `cl` (MSVC), `tcc` (win).
 
 ```
 Usage: cchunks [-hfvpd] IN_FILE -o OUT_FILE RANGE [RANGE_2 [...]]
