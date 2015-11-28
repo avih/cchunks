@@ -159,7 +159,9 @@ int main (int argc, char **argv)
                           break;
 
                 case '+': optopt = '+'; // fallthrough - proper POSIX (bsd, OS X, ...)
-                case '?': ERR_EXIT("unknown option -%c%s", optopt,
+                case '?': if (optopt == 'o')
+                              ERR_EXIT("-o: missing output file name");
+                          ERR_EXIT("unknown option -%c%s", optopt,
                                    (optopt >= '0' && optopt <= '9') ?
                                       " (missing -o OUT_FILE before the ranges?)" : "");
 
